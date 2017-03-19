@@ -92,3 +92,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Experiment functions
+poo.py
+foo.py
+
+# Placeholder for upfg
+UPFG_lib.py
