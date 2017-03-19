@@ -1,5 +1,8 @@
 import numpy as np
+#TODO Calculate the launch window and azimuth here, instead in the main script
 
+#For ease of use
+#Trigon function in degrees :)
 def r2d(x):
     return x*180/np.pi
 
@@ -27,6 +30,8 @@ def atand(x):
 def atan2d(x,y):
     return r2d(np.arctan2(x,y))
 
+#Another simplified function, and yeah i am lazy
+#This one is for vector operation
 def norm(x):
     return np.linalg.norm(x)
 
@@ -47,6 +52,7 @@ def vang(x,y):
     y = unit(y)
     return acosd(np.clip(dot(x,y),-1,1))
 
+#This is the black magic
 def peg(vessel,tgt,olda,oldb,oldt):
     cycle = 0.1
     mu = vessel.orbit.body.gravitational_parameter
