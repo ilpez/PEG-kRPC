@@ -58,8 +58,10 @@ while vessel.flight(surfref).speed < 30:
 
 print('Clear from launch tower..')
 print('Begin Pitch and Roll Program..')
+
 vessel.auto_pilot.target_heading = azimuth
 vessel.auto_pilot.target_roll = azimuth
+
 while True:
     if vessel.auto_pilot.target_roll > 0:
         vessel.auto_pilot.target_roll -= 0.01
@@ -72,11 +74,14 @@ while True:
         time.sleep(2)
         break
     time.sleep(0.01)
-print('Meco')
+
+print('Main Engine Cutoff')
+
 vessel.control.activate_next_stage()
 vessel.control.rcs = True
 vessel.control.forward = 1
 time.sleep(2)
+
 for engine in vessel.parts.engines:
     if not engine.active:
         print('There is no active engine, checking Propellant condition')
@@ -90,6 +95,7 @@ for engine in vessel.parts.engines:
 
 while vessel.thrust < vessel.max_thrust:
     time.sleep(0.01)
+
 vessel.auto_pilot.target_roll = 0
 t_call = time.time()
 delta_t = time.time() - t_call
@@ -101,6 +107,7 @@ a, b, c, t = peg.peg(delta_t,
                      0,
                      200)
 fairing_jettison = False
+
 while True:
     delta_t = time.time() - t_call
     t_call = time.time()
@@ -118,6 +125,7 @@ while True:
                           a,
                           b,
                           t)
+
     if np.absolute(t1-t)/t < 0.01:
         pitch = peg.asind(a + b*delta_t + c)
         vessel.auto_pilot.target_pitch = pitch
@@ -135,5 +143,7 @@ while True:
         vessel.control.rcs = False
         break
     time.sleep(0.01)
+
 print('Mission Success')
+
 conn.close()
