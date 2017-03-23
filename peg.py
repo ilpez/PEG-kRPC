@@ -1,4 +1,11 @@
+import Global
 import numpy as np
+
+conn = Global.conn
+space_center = Global.space_center
+vessel = Global.vessel
+mu = Global.mu
+g0 = Global.g0
 # For ease of use
 
 
@@ -70,15 +77,16 @@ def vang(x, y):
 # Calculate target_parameter
 
 
-def target_parameter(vessel,
-                     apoapsis,
+def target_parameter(apoapsis,
                      periapsis,
                      inclination,
                      lan,
                      slip):
     orbref = vessel.orbit.body.non_rotating_reference_frame
-    surref = vessel.orbit.body.reference_frame
-    mu = vessel.orbit.body.gravitational_parameter
+    # surfref = vessel.orbit.body.reference_frame
+    local_x = [1, 0, 0]
+    local_y = [0, 1, 0]
+    local_z = [0, 0, 1]
     apoapsis *= 1000
     periapsis *= 1000
     apoapsis += vessel.orbit.body.equatorial_radius
@@ -110,8 +118,12 @@ def target_parameter(vessel,
                                tand(inclination))
     if inclination < 0:
         relative_longitude = 180 + relative_longitude
-    rotational_angle = 360 - vang(vessel.orbit.body.msl_position(0, 0, surref),
-                                  vessel.orbit.body.msl_position(0, 0, orbref))
+    # earth_meridian = vessel.orbit.body.msl_position(0, 0, surfref)
+    prime_meridian = vessel.orbit.body.msl_position(0, 0, orbref)
+    rotational_angle = atan2d(dot(local_z, prime_meridian),
+                              dot(local_x, prime_meridian))
+    if rotational_angle < 0:
+        rotational_angle += 360
     print(rotational_angle)
     geo_longitude = lan + relative_longitude - rotational_angle
     geo_longitude = np.mod(geo_longitude + 360, 360)
@@ -125,20 +137,18 @@ def target_parameter(vessel,
 
 
 def peg(cycle,
-        vessel,
         tgtV,
         tgt,
         olda,
         oldb,
         oldt):
-    mu = vessel.orbit.body.gravitational_parameter
     alt = vessel.orbit.radius
     vt = vessel.flight(
         vessel.orbit.body.non_rotating_reference_frame).horizontal_speed
     vr = vessel.flight(
         vessel.orbit.body.non_rotating_reference_frame).vertical_speed
     acc = vessel.thrust/vessel.mass
-    ve = vessel.specific_impulse*9.80655
+    ve = vessel.specific_impulse*g0
 
     tau = ve/acc
 
@@ -199,3 +209,18 @@ def peg(cycle,
         b = oldb
 
     return np.array([a, b, c, t])
+
+
+def angle_from_vec(x, ref, angle):
+    east = [0, 0, 1]
+    north = [0, 1, 0]
+    up = [1, 0, 0]
+    surface_frame = vessel.surface_reference_frame
+    vector = space_center.transform_direction(x, ref, surface_frame)
+    if angle == 'pitch':
+        out = 90 - vang(up, vector)
+    elif angle == 'yaw':
+        out = atan2d(dot(east, vector), dot(north, vector))
+        if out < 0:
+            out += 360
+    return out
